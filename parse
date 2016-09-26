@@ -1,0 +1,328 @@
+//Добавление окна для вставки 
+if (!document.getElementsByName("Simbian")[0]){
+    document.getElementById("Table2").outerHTML = "<textarea onmouseover=\"if(this.value=='ВСТАВЬТЕ СЮДА ДАННЫЕ ИЗ ТАБЛИЦЫ НОВЫХ УЧЕТНЫХ ЗАПИСЕЙ!') this.value = ''\" onmouseout=\"if(this.value=='') this.value='ВСТАВЬТЕ СЮДА ДАННЫЕ ИЗ ТАБЛИЦЫ НОВЫХ УЧЕТНЫХ ЗАПИСЕЙ!'\"style=\"outline: 1px solid blue; font-size:15px; font-family: cursive\" cols=\"70\" name=\"Simbian\" rows=\"40\"></textarea>";
+document.getElementsByName("Simbian")[0].value = "ВСТАВЬТЕ СЮДА ДАННЫЕ ИЗ ТАБЛИЦЫ НОВЫХ УЧЕТНЫХ ЗАПИСЕЙ!";
+}
+function addCassiers(){
+    Cassiers = document.getElementsByName("Simbian")[0].value;
+    adderCasiers(Cassiers);
+}
+function clearText(){
+    document.getElementsByName("Simbian")[0].value = "";
+}
+document.getElementById("Table1").children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].outerHTML =" <button style=\"font-size:35px\" onclick=\"addCassiers()\" type=\"button\">Добавить кассиров</button><button style=\"font-size:35px\" onclick=\"clearText()\" type=\"button\">Очистить поле</button>";
+function adderCasiers(NewCassiers) {
+    var UndefinedPNFP = ""; //Пустой массив для учетных записей с ненайдеными ПНФП
+    var AlreadyExists = []; //пустой массив для существующих учетных записей
+    var ErrorCassiers = "";
+    //var NewCassiers = prompt("внесите данные новых кассиров"); //ввод списка кассиров
+    NewCassiers = NewCassiers.replace(/\s+/g, ' ').replace(/\s*$/, ''); //удаление лишних пробелов
+    CassiersAll = NewCassiers.split(' '); // розбивние на массив
+    //console.log(CassiersAll.length);
+    if (CassiersAll.length % 5 === 0) { //Проверка на соответстиве таблицы кассиров
+        var k = CassiersAll.length / 5; // количество кассиров
+        for (i = 0; i < k; i++) {
+            var num1 = i * 5;
+            var newPnfp = CassiersAll[num1];
+            adress = SearchPNFP(newPnfp);
+            if (adress === null) {
+                UndefinedPNFP = UndefinedPNFP + CassiersAll[num1] + "\t" + CassiersAll[num1 + 1] + " " + CassiersAll[num1 + 2] + " " + CassiersAll[num1 + 3] + "\t" + CassiersAll[num1 + 4] + "\n";
+                prompt("При поиске ПНФП обнаружена ошибка", newPnfp);
+                break;
+            }
+            if (adress !== undefined) {
+                //1. Отправляем GET запрос для получения HTML старници отделения
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', adress, false); //adress - парметр пеердаваемый из функции SearchPNFP(PnfpInf)
+                xhr.send(null);
+                var FirstResponse = xhr.responseText;
+                //Заменить HTML текущей старници на полученное
+                //document.documentElement.innerHTML = FirstResponse;
+                //Берем значение нужных элементов для следующего POST запроса
+                var vieState = FirstResponse.slice(FirstResponse.indexOf('VIEWSTATE" value=') + 18, FirstResponse.indexOf('"', FirstResponse.indexOf('VIEWSTATE" value=') + 18));
+                var vieStateGenerator = FirstResponse.slice(FirstResponse.indexOf('VIEWSTATEGENERATOR" value=') + 27, FirstResponse.indexOf('"', FirstResponse.indexOf('VIEWSTATEGENERATOR" value=') + 27));
+                var eventValidation = FirstResponse.slice(FirstResponse.indexOf('EVENTVALIDATION" value=') + 24, FirstResponse.indexOf('"', FirstResponse.indexOf('EVENTVALIDATION" value=') + 24));
+                //Заменить по элементам vieState и eventValidation все / на %2F,  + на %2B, = на %3D
+                var vieStateEnc = encodeURIComponent(vieState);
+                var vieStateGeneratorEnc = encodeURIComponent(vieStateGenerator);
+                var eventValidationEnc = encodeURIComponent(eventValidation);
+                //Форматируем ФИО под запрос
+                // FIO = "Каналуєв Арсеній Пилипович";
+                // arrayFIO = FIO.split(" ");
+                var decodeFio = encodeURIComponent(CassiersAll[num1 + 1]) + "+" + encodeURIComponent(CassiersAll[num1 + 2]) + "+" + encodeURIComponent(CassiersAll[num1 + 3]);
+                //логин
+                var login = CassiersAll[num1 + 4];
+                //Составляем параметры запроса
+                //var params = "__EVENTTARGET=&__EVENTARGUMENT=&__LASTFOCUS=&__VIEWSTATE="+vieStateEnc+"&__VIEWSTATEGENERATOR="+vieStateGeneratorEnc+"&__EVENTVALIDATION="+eventValidationEnc+"&OnlyActiveUsersCheckBox=on&UserNameTextBox=%D0%9B%D0%B0%D1%82%D1%83%D0%BD+%D0%9C%D0%B0%D0%BA%D1%81%D0%B8%D0%BC+%D0%9B%D0%B5%D0%BE%D0%BD%D1%96%D0%B4%D0%BE%D0%B2%D0%B8%D1%87&LoginTextBox=valuhin.d&PasswordTextBox=12345&AddUserButton=%D0%94%D0%BE%D0%B1%D0%B0%D0%B2%D0%B8%D1%82%D1%8C&UsersIndex="
+                var params = "__EVENTTARGET=&__EVENTARGUMENT=&__LASTFOCUS=&__VIEWSTATE=" + vieStateEnc + "&__VIEWSTATEGENERATOR=" + vieStateGeneratorEnc + "&__EVENTVALIDATION=" + eventValidationEnc + "&OnlyActiveUsersCheckBox=on&UserNameTextBox=" + decodeFio + "&LoginTextBox=" + login + "&PasswordTextBox=12345&AddUserButton=%D0%94%D0%BE%D0%B1%D0%B0%D0%B2%D0%B8%D1%82%D1%8C&UsersIndex=";
+                //Отправляем новый запрос POST
+                xhr = new XMLHttpRequest();
+                xhr.open('POST', adress, false);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.send(params);
+                SecondResponse = xhr.responseText;
+                //document.documentElement.innerHTML = SecondResponse;
+                //alert("tgf");
+                if (SecondResponse.indexOf("Логин который Вы указали используется уже кем-то другим. Пожалуйста, измените его.") == -1) {
+                    // alert("Все ок");
+                    //Второй запрос
+                    //Берем значение нужных элементов для следующего POST запроса
+                    vieState = SecondResponse.slice(SecondResponse.indexOf('VIEWSTATE" value=') + 18, SecondResponse.indexOf('"', SecondResponse.indexOf('VIEWSTATE" value=') + 18));
+                    vieStateGenerator = SecondResponse.slice(SecondResponse.indexOf('VIEWSTATEGENERATOR" value=') + 27, SecondResponse.indexOf('"', SecondResponse.indexOf('VIEWSTATEGENERATOR" value=') + 27));
+                    eventValidation = SecondResponse.slice(SecondResponse.indexOf('EVENTVALIDATION" value=') + 24, SecondResponse.indexOf('"', SecondResponse.indexOf('EVENTVALIDATION" value=') + 24));
+                    //Заменить по элементам vieState и eventValidation все / на %2F,  + на %2B, = на %3D
+                    vieStateEnc = encodeURIComponent(vieState);
+                    vieStateGeneratorEnc = encodeURIComponent(vieStateGenerator);
+                    eventValidationEnc = encodeURIComponent(eventValidation);
+                    //ID новой записи
+                    Index = SecondResponse.slice(SecondResponse.lastIndexOf('fnSelectGridItem(', SecondResponse.indexOf(login)) + 16, SecondResponse.lastIndexOf('fnSelectGridItem(', SecondResponse.indexOf(login)) + 20).match(/\d+/)[0];
+                    //Составляем параметры запроса для открытия прав новой записи
+                    params = "__EVENTTARGET=&__EVENTARGUMENT=&__LASTFOCUS=&__VIEWSTATE=" + vieStateEnc + "&__VIEWSTATEGENERATOR=" + vieStateGeneratorEnc + "&__EVENTVALIDATION=" + eventValidationEnc + "&OnlyActiveUsersCheckBox=on&UserNameTextBox=&LoginTextBox=&PasswordTextBox=&UsersIndex=" + Index;
+                    //Отправляем новый запрос POST
+                    xhr = new XMLHttpRequest();
+                    xhr.open('POST', adress, false);
+                    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                    xhr.send(params);
+                    var ThirdResponse = xhr.responseText;
+                    //document.documentElement.innerHTML = ThirdResponse;
+                    //Выставление прав + Добавить
+                    //Берем значение нужных элементов для следующего POST запроса
+                    vieState = ThirdResponse.slice(ThirdResponse.indexOf('VIEWSTATE" value=') + 18, ThirdResponse.indexOf('"', ThirdResponse.indexOf('VIEWSTATE" value=') + 18));
+                    vieStateGenerator = ThirdResponse.slice(ThirdResponse.indexOf('VIEWSTATEGENERATOR" value=') + 27, ThirdResponse.indexOf('"', ThirdResponse.indexOf('VIEWSTATEGENERATOR" value=') + 27));
+                    eventValidation = ThirdResponse.slice(ThirdResponse.indexOf('EVENTVALIDATION" value=') + 24, ThirdResponse.indexOf('"', ThirdResponse.indexOf('EVENTVALIDATION" value=') + 24));
+                    //Заменить по элементам vieState и eventValidation все / на %2F,  + на %2B, = на %3D
+                    vieStateEnc = encodeURIComponent(vieState);
+                    vieStateGeneratorEnc = encodeURIComponent(vieStateGenerator);
+                    eventValidationEnc = encodeURIComponent(eventValidation);
+                    //Составляем параметры запроса
+                    params = "__EVENTTARGET=&__EVENTARGUMENT=&__LASTFOCUS=&__VIEWSTATE=" + vieStateEnc + "&__VIEWSTATEGENERATOR=" + vieStateGeneratorEnc + "&__EVENTVALIDATION=" + eventValidationEnc + "&OnlyActiveUsersCheckBox=on&UserNameTextBox=&LoginTextBox=&PasswordTextBox=&NewPasswordTextBox=&ConfirmPasswordTextBox=&UserRightsList%3A_ctl0%3ARightCheckBox=on&UserRightsList%3A_ctl30%3ARightCheckBox=on&UserRightsList%3A_ctl32%3ARightCheckBox=on&UserRightsList%3A_ctl24%3ARightCheckBox=on&UserRightsList%3A_ctl5%3ARightCheckBox=on&UserRightsList%3A_ctl25%3ARightCheckBox=on&UserRightsList%3A_ctl26%3ARightCheckBox=on&UserRightsList%3A_ctl27%3ARightCheckBox=on&UserRightsList%3A_ctl9%3ARightCheckBox=on&UserRightBehaviour=rbAgencyManager&AddFieldsNamesCombo=2.Cashier%2FManager&AddPropName=&AddPropValue=Cashier&AddProperty=%D0%94%D0%BE%D0%B1%D0%B0%D0%B2%D0%B8%D1%82%D1%8C+%D1%81%D0%B2%D0%BE%D0%B9%D1%81%D1%82%D0%B2%D0%BE&UsersIndex=";
+                    //Отправляем новый запрос POST
+                    xhr = new XMLHttpRequest();
+                    xhr.open('POST', adress, false);
+                    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                    xhr.send(params);
+                    var FourthResponse = xhr.responseText;
+                    //document.documentElement.innerHTML = FourthResponse;
+                    //Добавить CanUseRRO
+                    //Берем значение нужных элементов для следующего POST запроса
+                    vieState = FourthResponse.slice(FourthResponse.indexOf('VIEWSTATE" value=') + 18, FourthResponse.indexOf('"', FourthResponse.indexOf('VIEWSTATE" value=') + 18));
+                    vieStateGenerator = FourthResponse.slice(FourthResponse.indexOf('VIEWSTATEGENERATOR" value=') + 27, FourthResponse.indexOf('"', FourthResponse.indexOf('VIEWSTATEGENERATOR" value=') + 27));
+                    eventValidation = FourthResponse.slice(FourthResponse.indexOf('EVENTVALIDATION" value=') + 24, FourthResponse.indexOf('"', FourthResponse.indexOf('EVENTVALIDATION" value=') + 24));
+                    //Заменить по элементам vieState и eventValidation все / на %2F,  + на %2B, = на %3D
+                    vieStateEnc = encodeURIComponent(vieState);
+                    vieStateGeneratorEnc = encodeURIComponent(vieStateGenerator);
+                    eventValidationEnc = encodeURIComponent(eventValidation);
+                    //Составляем параметры запроса
+                    params = "__EVENTTARGET=&__EVENTARGUMENT=&__LASTFOCUS=&__VIEWSTATE=" + vieStateEnc + "&__VIEWSTATEGENERATOR=" + vieStateGeneratorEnc + "&__EVENTVALIDATION=" + eventValidationEnc + "&OnlyActiveUsersCheckBox=on&&UserNameTextBox=&LoginTextBox=&PasswordTextBox=&NewPasswordTextBox=&ConfirmPasswordTextBox=&UserRightsList%3A_ctl0%3ARightCheckBox=on&UserRightsList%3A_ctl32%3ARightCheckBox=on&UserRightsList%3A_ctl24%3ARightCheckBox=on&UserRightsList%3A_ctl34%3ARightCheckBox=on&UserRightsList%3A_ctl5%3ARightCheckBox=on&UserRightsList%3A_ctl25%3ARightCheckBox=on&UserRightsList%3A_ctl26%3ARightCheckBox=on&UserRightsList%3A_ctl27%3ARightCheckBox=on&UserRightsList%3A_ctl9%3ARightCheckBox=on&UserRightsList%3A_ctl29%3ARightCheckBox=on&UserRightBehaviour=rbAgencyManager&AddFieldsNamesCombo=9.True&AddPropName=&AddPropValue=True&AddProperty=%D0%94%D0%BE%D0%B1%D0%B0%D0%B2%D0%B8%D1%82%D1%8C+%D1%81%D0%B2%D0%BE%D0%B9%D1%81%D1%82%D0%B2%D0%BE&UsersIndex=";
+                    //Отправляем новый запрос POST
+                    xhr = new XMLHttpRequest();
+                    xhr.open('POST', adress, false);
+                    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                    xhr.send(params);
+                    var FifthResponse = xhr.responseText;
+                    //document.documentElement.innerHTML = FourthResponse;
+                    //Изменить
+                    //Берем значение нужных элементов для следующего POST запроса
+                    vieState = FifthResponse.slice(FifthResponse.indexOf('VIEWSTATE" value=') + 18, FifthResponse.indexOf('"', FifthResponse.indexOf('VIEWSTATE" value=') + 18));
+                    vieStateGenerator = FifthResponse.slice(FifthResponse.indexOf('VIEWSTATEGENERATOR" value=') + 27, FifthResponse.indexOf('"', FifthResponse.indexOf('VIEWSTATEGENERATOR" value=') + 27));
+                    eventValidation = FifthResponse.slice(FifthResponse.indexOf('EVENTVALIDATION" value=') + 24, FifthResponse.indexOf('"', FifthResponse.indexOf('EVENTVALIDATION" value=') + 24));
+                    //Заменить по элементам vieState и eventValidation все / на %2F,  + на %2B, = на %3D
+                    vieStateEnc = encodeURIComponent(vieState);
+                    vieStateGeneratorEnc = encodeURIComponent(vieStateGenerator);
+                    eventValidationEnc = encodeURIComponent(eventValidation);
+                    //Составляем параметры запроса
+                    params = "__EVENTTARGET=&__EVENTARGUMENT=&__LASTFOCUS=&__VIEWSTATE=" + vieStateEnc + "&__VIEWSTATEGENERATOR=" + vieStateGeneratorEnc + "&__EVENTVALIDATION=" + eventValidationEnc + "&OnlyActiveUsersCheckBox=on&UserNameTextBox=&LoginTextBox=&PasswordTextBox=&NewPasswordTextBox=&ConfirmPasswordTextBox=&UserRightsList%3A_ctl0%3ARightCheckBox=on&UserRightsList%3A_ctl32%3ARightCheckBox=on&UserRightsList%3A_ctl24%3ARightCheckBox=on&UserRightsList%3A_ctl34%3ARightCheckBox=on&UserRightsList%3A_ctl5%3ARightCheckBox=on&UserRightsList%3A_ctl25%3ARightCheckBox=on&UserRightsList%3A_ctl26%3ARightCheckBox=on&UserRightsList%3A_ctl27%3ARightCheckBox=on&UserRightsList%3A_ctl9%3ARightCheckBox=on&UserRightsList%3A_ctl29%3ARightCheckBox=on&UserRightBehaviour=rbAgencyManager&AddFieldsNamesCombo=9.True&AddPropName=&AddPropValue=True&UpdateUserButton=%D0%98%D0%B7%D0%BC%D0%B5%D0%BD%D0%B8%D1%82%D1%8C&UsersIndex=";
+                    //Отправляем новый запрос POST
+                    xhr = new XMLHttpRequest();
+                    xhr.open('POST', adress, false);
+                    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                    xhr.send(params);
+                    var SixthResponse = xhr.responseText;
+                    //document.documentElement.innerHTML = FifthResponse;
+                    addMonitor(SixthResponse, adress, newPnfp);
+                } else {
+                    // alert("Логин который Вы указали используется уже кем-то другим. Пожалуйста, измените его.");
+                    //AlreadyExists.push(CassiersAll[num1] + " " + CassiersAll[num1 + 1] + " " + CassiersAll[num1 + 2] + " " + CassiersAll[num1 + 3] + " " + CassiersAll[num1 + 4]);
+                    ErrorCassiers = ErrorCassiers + CassiersAll[num1] + "\t" + CassiersAll[num1 + 1] + " " + CassiersAll[num1 + 2] + " " + CassiersAll[num1 + 3] + "\t" + CassiersAll[num1 + 4] + "\n";
+
+                }
+
+            } else {
+                //UndefinedPNFP.push(CassiersAll[num1] + " " + CassiersAll[num1 + 1] + " " + CassiersAll[num1 + 2] + " " + CassiersAll[num1 + 3] + " " + CassiersAll[num1 + 4]);
+                UndefinedPNFP = UndefinedPNFP + CassiersAll[num1] + "\t" + CassiersAll[num1 + 1] + " " + CassiersAll[num1 + 2] + " " + CassiersAll[num1 + 3] + "\t" + CassiersAll[num1 + 4] + "\n";
+            }
+        }
+    } else {
+        alert("Недостаточно элементов в списке!");
+    }
+    if (ErrorCassiers !== "" || UndefinedPNFP !== "") {
+        document.getElementsByName("Simbian")[0].value = "Логины уже используются!" + "\n" + ErrorCassiers + "\n" + "Учетки с ошибкой при поиске ПНФП!" + "\n" + UndefinedPNFP;
+
+    } else {
+        if (CassiersAll.length % 5 === 0) alert("Все кассиры внесены");
+    }
+}
+
+//*************************************************************Функция поиска*****************************************
+
+function SearchPNFP(PnfpInf) {
+    PnfpArr = [5556, 5556, 6251, 6246, 6241, 8040, 8054, 8329, 8233, 8210, 8330, 8241, 8331, 8332, 8070, 8240, 8333, 8103, 8334, 8335, 8391, 8392, 8393, 8394, 8395];
+    TwoCif = ["10", "11", "22", "16", "14", "04", "08", "15", "23", "12", "17", "26", "09", "20", "06", "25", "02", "24", "03", "18", "27", "21", "07", "13", "05"];
+    PNFP = PnfpInf.replace(/\s+/g, '');
+    if (PNFP.length == 5) {
+        FSpnfp = PNFP.slice(0, 2);
+        //Номер позиции в массиве
+
+        function finder(array, value) {
+            for (var i = 0; i < array.length; i++) {
+                if (array[i] == value) return i;
+            }
+            return 1;
+        }
+        NumArray = finder(TwoCif, FSpnfp);
+        if (PNFP.slice(0, 3) == "000") {
+            NumArray = PNFP.slice(-2) - 1 + 1;
+            if (PNFP.slice(-2) > 24) {
+                //alert("Филиал "+PNFP.slice(-2)+" не существует!!!");
+                //document.location.href = tooda;
+                return undefined;
+                //NumArray =1;//для предотвращения ошибки
+            }
+        }
+
+        IdFilials = PnfpArr[NumArray];
+        Host = location.host;
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', "http://" + Host + "/WebUI.Retail/Agencies.aspx?ID=1&pID=5555&ppID=" + IdFilials, false);
+        xhr.send(null);
+        var SearchFilials = xhr.responseText;
+        PnfpStr = "№" + PNFP;
+        if (PNFP == '00000') {
+            PnfpStr = "Каса";
+        }
+        if (SearchFilials.indexOf(PnfpStr) != -1) {
+            hrefPNFP = SearchFilials.slice(SearchFilials.indexOf('href="', SearchFilials.indexOf(PnfpStr)) + 6, SearchFilials.indexOf('Пользователи', SearchFilials.indexOf(PnfpStr)) - 2);
+            adress = 'http://' + Host + '/WebUI.Retail/' + hrefPNFP;
+            adress = adress.replace("amp;", "").replace("amp;", "").replace("amp;", "");
+            //document.location.href = adress;
+        } else {
+            if (SearchFilials.indexOf("Server Error in '/WebUI.Retail' Application.") == -1 && SearchFilials.indexOf("Пожалуйста, подключитесь") == -1) {
+                //alert("Указанный ПНФП не существует!");
+                return undefined;
+            } else {
+                alert("Нужно перелогинится!");
+                //document.location.href = "http://"+ Host +"/WebUI.Retail/Login.aspx";
+                return null;
+            }
+
+        }
+    } else {
+        //alert("Количество цифр - "+PNFP.length);
+        return undefined;
+    }
+    return adress;
+}
+
+//***********************************************Функция добавления Мониторинга********************************************************
+
+function addMonitor(LastResponse, PnfpAdress, NumPnfp) {
+    //логин monitor. + номер ПНФП
+    var login = "monitor." + NumPnfp;
+    if (LastResponse.indexOf(login) == -1) {
+        //Берем значение нужных элементов для следующего POST запроса
+        var vieState = LastResponse.slice(LastResponse.indexOf('VIEWSTATE" value=') + 18, LastResponse.indexOf('"', LastResponse.indexOf('VIEWSTATE" value=') + 18));
+        var vieStateGenerator = LastResponse.slice(LastResponse.indexOf('VIEWSTATEGENERATOR" value=') + 27, LastResponse.indexOf('"', LastResponse.indexOf('VIEWSTATEGENERATOR" value=') + 27));
+        var eventValidation = LastResponse.slice(LastResponse.indexOf('EVENTVALIDATION" value=') + 24, LastResponse.indexOf('"', LastResponse.indexOf('EVENTVALIDATION" value=') + 24));
+        //Заменить по элементам vieState и eventValidation все / на %2F,  + на %2B, = на %3D
+        var vieStateEnc = encodeURIComponent(vieState);
+        var vieStateGeneratorEnc = encodeURIComponent(vieStateGenerator);
+        var eventValidationEnc = encodeURIComponent(eventValidation);
+        //Форматируем ФИО под запрос
+        // FIO = "Мониторинг";
+        var decodeFio = encodeURIComponent("Мониторинг");
+        //Составляем параметры запроса
+        var params = "__EVENTTARGET=&__EVENTARGUMENT=&__LASTFOCUS=&__VIEWSTATE=" + vieStateEnc + "&__VIEWSTATEGENERATOR=" + vieStateGeneratorEnc + "&__EVENTVALIDATION=" + eventValidationEnc + "&OnlyActiveUsersCheckBox=on&UserNameTextBox=" + decodeFio + "&LoginTextBox=" + login + "&PasswordTextBox=O2uyH7!5&AddUserButton=%D0%94%D0%BE%D0%B1%D0%B0%D0%B2%D0%B8%D1%82%D1%8C&UsersIndex=";
+        //Отправляем новый запрос POST
+        xhr = new XMLHttpRequest();
+        xhr.open('POST', PnfpAdress, false);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.send(params);
+        firstResponseMon = xhr.responseText;
+        if (firstResponseMon.indexOf("Логин который Вы указали используется уже кем-то другим. Пожалуйста, измените его.") == -1) {
+            //Второй запрос
+            //Берем значение нужных элементов для следующего POST запроса
+            vieState = firstResponseMon.slice(firstResponseMon.indexOf('VIEWSTATE" value=') + 18, firstResponseMon.indexOf('"', firstResponseMon.indexOf('VIEWSTATE" value=') + 18));
+            vieStateGenerator = firstResponseMon.slice(firstResponseMon.indexOf('VIEWSTATEGENERATOR" value=') + 27, firstResponseMon.indexOf('"', firstResponseMon.indexOf('VIEWSTATEGENERATOR" value=') + 27));
+            eventValidation = firstResponseMon.slice(firstResponseMon.indexOf('EVENTVALIDATION" value=') + 24, firstResponseMon.indexOf('"', firstResponseMon.indexOf('EVENTVALIDATION" value=') + 24));
+            //Заменить по элементам vieState и eventValidation все / на %2F,  + на %2B, = на %3D
+            vieStateEnc = encodeURIComponent(vieState);
+            vieStateGeneratorEnc = encodeURIComponent(vieStateGenerator);
+            eventValidationEnc = encodeURIComponent(eventValidation);
+            //ID новой записи
+            Index = firstResponseMon.slice(firstResponseMon.lastIndexOf('fnSelectGridItem(', firstResponseMon.indexOf(login)) + 16, firstResponseMon.lastIndexOf('fnSelectGridItem(', firstResponseMon.indexOf(login)) + 20).match(/\d+/)[0];
+            //Составляем параметры запроса для открытия прав новой записи
+            params = "__EVENTTARGET=&__EVENTARGUMENT=&__LASTFOCUS=&__VIEWSTATE=" + vieStateEnc + "&__VIEWSTATEGENERATOR=" + vieStateGeneratorEnc + "&__EVENTVALIDATION=" + eventValidationEnc + "&OnlyActiveUsersCheckBox=on&UserNameTextBox=&LoginTextBox=&PasswordTextBox=&UsersIndex=" + Index;
+            //Отправляем новый запрос POST
+            xhr = new XMLHttpRequest();
+            xhr.open('POST', PnfpAdress, false);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.send(params);
+            var secondResponseMon = xhr.responseText;
+            //document.documentElement.innerHTML = secondResponseMon;
+            //Выставление прав + Добавить Manager
+            //Берем значение нужных элементов для следующего POST запроса
+            vieState = secondResponseMon.slice(secondResponseMon.indexOf('VIEWSTATE" value=') + 18, secondResponseMon.indexOf('"', secondResponseMon.indexOf('VIEWSTATE" value=') + 18));
+            vieStateGenerator = secondResponseMon.slice(secondResponseMon.indexOf('VIEWSTATEGENERATOR" value=') + 27, secondResponseMon.indexOf('"', secondResponseMon.indexOf('VIEWSTATEGENERATOR" value=') + 27));
+            eventValidation = secondResponseMon.slice(secondResponseMon.indexOf('EVENTVALIDATION" value=') + 24, secondResponseMon.indexOf('"', secondResponseMon.indexOf('EVENTVALIDATION" value=') + 24));
+            //Заменить по элементам vieState и eventValidation все / на %2F,  + на %2B, = на %3D
+            vieStateEnc = encodeURIComponent(vieState);
+            vieStateGeneratorEnc = encodeURIComponent(vieStateGenerator);
+            eventValidationEnc = encodeURIComponent(eventValidation);
+            //Составляем параметры запроса
+            params = "__EVENTTARGET=&__EVENTARGUMENT=&__LASTFOCUS=&__VIEWSTATE=" + vieStateEnc + "&__VIEWSTATEGENERATOR=" + vieStateGeneratorEnc + "&__EVENTVALIDATION=" + eventValidationEnc + "&OnlyActiveUsersCheckBox=on&UserNameTextBox=&LoginTextBox=&PasswordTextBox=&NewPasswordTextBox=&ConfirmPasswordTextBox=&UserRightsList%3A_ctl0%3ARightCheckBox=on&UserRightsList%3A_ctl30%3ARightCheckBox=on&UserRightsList%3A_ctl29%3ARightCheckBox=on&UserRightBehaviour=rbAgencyManager&AddFieldsNamesCombo=2.Cashier%2FManager&AddPropName=&AddPropValue=Manager&AddProperty=%D0%94%D0%BE%D0%B1%D0%B0%D0%B2%D0%B8%D1%82%D1%8C+%D1%81%D0%B2%D0%BE%D0%B9%D1%81%D1%82%D0%B2%D0%BE&UsersIndex=";
+            //Отправляем новый запрос POST
+            xhr = new XMLHttpRequest();
+            xhr.open('POST', PnfpAdress, false);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.send(params);
+            var firdResponseMon = xhr.responseText;
+            //document.documentElement.innerHTML = firdResponseMon;
+            //Выставление прав + Добавить CanUseRRO
+            //Берем значение нужных элементов для следующего POST запроса
+            vieState = firdResponseMon.slice(firdResponseMon.indexOf('VIEWSTATE" value=') + 18, firdResponseMon.indexOf('"', firdResponseMon.indexOf('VIEWSTATE" value=') + 18));
+            vieStateGenerator = firdResponseMon.slice(firdResponseMon.indexOf('VIEWSTATEGENERATOR" value=') + 27, firdResponseMon.indexOf('"', firdResponseMon.indexOf('VIEWSTATEGENERATOR" value=') + 27));
+            eventValidation = firdResponseMon.slice(firdResponseMon.indexOf('EVENTVALIDATION" value=') + 24, firdResponseMon.indexOf('"', firdResponseMon.indexOf('EVENTVALIDATION" value=') + 24));
+            //Заменить по элементам vieState и eventValidation все / на %2F,  + на %2B, = на %3D
+            vieStateEnc = encodeURIComponent(vieState);
+            vieStateGeneratorEnc = encodeURIComponent(vieStateGenerator);
+            eventValidationEnc = encodeURIComponent(eventValidation);
+            //Составляем параметры запроса
+            params = "__EVENTTARGET=&__EVENTARGUMENT=&__LASTFOCUS=&__VIEWSTATE=" + vieStateEnc + "&__VIEWSTATEGENERATOR=" + vieStateGeneratorEnc + "&__EVENTVALIDATION=" + eventValidationEnc + "&OnlyActiveUsersCheckBox=on&UserNameTextBox=&LoginTextBox=&PasswordTextBox=&NewPasswordTextBox=&ConfirmPasswordTextBox=&UserRightsList%3A_ctl0%3ARightCheckBox=on&UserRightsList%3A_ctl30%3ARightCheckBox=on&UserRightsList%3A_ctl29%3ARightCheckBox=on&UserRightBehaviour=rbAgencyManager&AddFieldsNamesCombo=&AddPropName=CanUseRRO&AddPropValue=False&AddProperty=%D0%94%D0%BE%D0%B1%D0%B0%D0%B2%D0%B8%D1%82%D1%8C+%D1%81%D0%B2%D0%BE%D0%B9%D1%81%D1%82%D0%B2%D0%BE&UsersIndex=";
+            //Отправляем новый запрос POST
+            xhr = new XMLHttpRequest();
+            xhr.open('POST', PnfpAdress, false);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.send(params);
+            var fifthResponseMon = xhr.responseText;
+            //document.documentElement.innerHTML = fifthResponseMon;
+            //Изменить
+            //Берем значение нужных элементов для следующего POST запроса
+            vieState = fifthResponseMon.slice(fifthResponseMon.indexOf('VIEWSTATE" value=') + 18, fifthResponseMon.indexOf('"', fifthResponseMon.indexOf('VIEWSTATE" value=') + 18));
+            vieStateGenerator = fifthResponseMon.slice(fifthResponseMon.indexOf('VIEWSTATEGENERATOR" value=') + 27, fifthResponseMon.indexOf('"', fifthResponseMon.indexOf('VIEWSTATEGENERATOR" value=') + 27));
+            eventValidation = fifthResponseMon.slice(fifthResponseMon.indexOf('EVENTVALIDATION" value=') + 24, fifthResponseMon.indexOf('"', fifthResponseMon.indexOf('EVENTVALIDATION" value=') + 24));
+            //Заменить по элементам vieState и eventValidation все / на %2F,  + на %2B, = на %3D
+            vieStateEnc = encodeURIComponent(vieState);
+            vieStateGeneratorEnc = encodeURIComponent(vieStateGenerator);
+            eventValidationEnc = encodeURIComponent(eventValidation);
+            //Составляем параметры запроса
+            params = "__EVENTTARGET=&__EVENTARGUMENT=&__LASTFOCUS=&__VIEWSTATE=" + vieStateEnc + "&__VIEWSTATEGENERATOR=" + vieStateGeneratorEnc + "&__EVENTVALIDATION=" + eventValidationEnc + "&OnlyActiveUsersCheckBox=on&UserNameTextBox=&LoginTextBox=&PasswordTextBox=&NewPasswordTextBox=&ConfirmPasswordTextBox=&UserRightsList%3A_ctl0%3ARightCheckBox=on&UserRightsList%3A_ctl30%3ARightCheckBox=on&UserRightsList%3A_ctl29%3ARightCheckBox=on&UserRightBehaviour=rbAgencyManager&AddFieldsNamesCombo=&AddPropName=&AddPropValue=&UpdateUserButton=%D0%98%D0%B7%D0%BC%D0%B5%D0%BD%D0%B8%D1%82%D1%8C&UsersIndex=";
+            //Отправляем новый запрос POST
+            xhr = new XMLHttpRequest();
+            xhr.open('POST', PnfpAdress, false);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.send(params);
+            var sixthResponsemon = xhr.responseText;
+            //document.documentElement.innerHTML = FifthResponse;
+        }
+    }
+}

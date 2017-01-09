@@ -117,7 +117,7 @@ function SearchIdPnfp(PnfpInf) {
 function testCount(ListCassiers) {
     alert("testCount");
     ListPnfpforMoving = ListCassiers.match(/\b\d{5}\b/g); //выборка из текста номеров ПНФП;
-    ListLoginsForMoving = ListCassiers.match(/[a-z]+.+[a-z]+\b/g); //выборка логинов начинающихся с латиници 
+    ListLoginsForMoving = ListCassiers.match(/[a-z]+\.+\w+\b/g); //выборка логинов начинающихся с латиници 
     CountCassiers = ListLoginsForMoving.length; // количество кассиров
     CountPNFPS = ListPnfpforMoving.length; // количество кассиров
     if (CountCassiers == CountPNFPS / 2) {

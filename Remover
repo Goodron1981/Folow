@@ -6,7 +6,7 @@ document.getElementsByName("Simbian")[0].value = "ВСТАВЬТЕ СЮДА ДА
 document.getElementById("Table1").children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].outerHTML = " <button style=\"font-size:35px\" onclick=\"addCassiers()\" type=\"button\">Перевести кассиров</button><button style=\"font-size:35px\" onclick=\"clearText()\" type=\"button\">Очистить поле</button>";
 
 function addCassiers() {
-    alert("Собираем данные");
+    //alert("Собираем данные");
     ErrorRemoving = ""; // Ошибка на последнем этапе
     UndefinedPNFP = ""; //Пустой массив для учетных записей с ненайдеными ПНФП
     DontFind = ""; //пустой массив для записей которых не нашли на обоих ПНФП
@@ -22,7 +22,7 @@ function clearText() {
 }
 
 function SearchIdPnfp(PnfpInf) {
-    alert("SearchIdPnfp");
+    //alert("SearchIdPnfp");
     FSpnfp = PnfpInf.slice(0, 2);
     MooveAg = {
         "10": 5556,
@@ -210,7 +210,7 @@ function trySerchIdCas(numpnfp, logincassier) {
 }
 
 function deremovinf(idpnfp, idcassier) {
-    alert("deremovinf");
+    //alert("deremovinf");
     params = '<?xml version="1.0"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><SOAP-ENV:Body><CheckUserCanBeMoved xmlns="http://UAPay.com.ua/admin//"><ticket>' + ticketNum + '</ticket><userID>' + idcassier + '</userID></CheckUserCanBeMoved></SOAP-ENV:Body></SOAP-ENV:Envelope>';
     var adress = 'http://retail.uapay.ua/webservice.retail/Admin/Mapping.asmx';
     xhr = new XMLHttpRequest();

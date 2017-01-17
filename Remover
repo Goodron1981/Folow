@@ -115,7 +115,7 @@ function SearchIdPnfp(PnfpInf) {
 //***
 
 function testCount(ListCassiers) {
-    alert("testCount");
+    //alert("testCount");
     ListPnfpforMoving = ListCassiers.match(/\b\d{5}\b/g); //выборка из текста номеров ПНФП;
     ListLoginsForMoving = ListCassiers.match(/[a-z]+\.\w*\.?\w*\b/g); //выборка логинов начинающихся с латиници 
     CountCassiers = ListLoginsForMoving.length; // количество кассиров
@@ -135,7 +135,7 @@ function testCount(ListCassiers) {
 }
 
 function removeCassiers(listlogins, listpnfp, CountCassiers) {
-    alert('removeCassiers');
+    //alert('removeCassiers');
     for (count = 0; count < CountCassiers; count++) {
         alert("count " + count);
         numOldPnfp = listpnfp[count * 2];
@@ -158,12 +158,12 @@ function removeCassiers(listlogins, listpnfp, CountCassiers) {
 }
 
 function trySerchIdCas(numpnfp, logincassier) {
-    alert('trySerchIdCas');
+   // alert('trySerchIdCas');
     ID_SEARCH = {};
     ID_SEARCH.ID_PNFP = SearchIdPnfp(numpnfp);
     if (ID_SEARCH.ID_PNFP) {
         alert("Найден ПНФП " + numpnfp);
-        alert("Ищем в активных " + logincassier);
+        //alert("Ищем в активных " + logincassier);
         adressHref = 'http://retail.uapay.ua/WebUI.Retail/Users.aspx?ID=1&pID=5555&ppID=5556&pppID=' + ID_SEARCH.ID_PNFP;
         //1. Отправляем GET запрос для получения HTML старници отделения
         var xhr = new XMLHttpRequest();
@@ -176,7 +176,7 @@ function trySerchIdCas(numpnfp, logincassier) {
             alert("Найден кассир " + logincassier + " на ПНФП " + numpnfp + " в активных");
             return ID_SEARCH;
         } else {
-            alert("Ищем в неактивных " + logincassier);
+           // alert("Ищем в неактивных " + logincassier);
             //Открываем всех неактивных
             var vieState = FirstResponse.slice(FirstResponse.indexOf('VIEWSTATE" value=') + 18, FirstResponse.indexOf('"', FirstResponse.indexOf('VIEWSTATE" value=') + 18));
             var vieStateGenerator = FirstResponse.slice(FirstResponse.indexOf('VIEWSTATEGENERATOR" value=') + 27, FirstResponse.indexOf('"', FirstResponse.indexOf('VIEWSTATEGENERATOR" value=') + 27));

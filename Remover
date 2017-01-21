@@ -1,4 +1,4 @@
-ticketNum = 'cXIhciB2IXY5IC0ncDkgInV1OXUiJyc5ICRwISNwJiIgLSR1';//08:14
+ticketNum = 'dCUgIyF0dCU4cyZ3djghdiRzOHd0c3A4JidxLCBwIyFzcCYm';//08:14
 //************************************************************************** Заготовка
 //Добавление окна для вставки 
 if (!document.getElementsByName("Simbian")[0]) document.getElementById("Table2").outerHTML = "<textarea onmouseover=\"if(this.value=='ВСТАВЬТЕ СЮДА ДАННЫЕ УЧЕТНЫХ ЗАПИСЕЙ КОТОРЫХ НЕОБХОДИМО ПЕРЕВЕСТИ!') this.value = ''\" onmouseout=\"if(this.value=='') this.value='ВСТАВЬТЕ СЮДА ДАННЫЕ УЧЕТНЫХ ЗАПИСЕЙ КОТОРЫХ НЕОБХОДИМО ПЕРЕВЕСТИ!'\"style=\"outline: 1px solid blue; font-size:15px; font-family: cursive\" cols=\"70\" name=\"Simbian\" rows=\"40\"></textarea>";
@@ -162,7 +162,7 @@ function trySerchIdCas(numpnfp, logincassier) {
     ID_SEARCH = {};
     ID_SEARCH.ID_PNFP = SearchIdPnfp(numpnfp);
     if (ID_SEARCH.ID_PNFP) {
-        alert("Найден ПНФП " + numpnfp);
+        //alert("Найден ПНФП " + numpnfp);
         //alert("Ищем в активных " + logincassier);
         adressHref = 'http://retail.uapay.ua/WebUI.Retail/Users.aspx?ID=1&pID=5555&ppID=5556&pppID=' + ID_SEARCH.ID_PNFP;
         //1. Отправляем GET запрос для получения HTML старници отделения

@@ -1,0 +1,132 @@
+function SearchPnfp(PnfpInf) {
+    NumPnfp = PnfpInf.replace(/\s+/g, '');
+    if (NumPnfp.length !== 5) {
+        alert("Некорректная длина ПНФП " + NumPnfp.length);
+        alert(Stop);
+    }
+    FSpnfp = NumPnfp.slice(0, 2);
+    MooveAg = {
+        "10": 5556,
+        "11": 5556,
+        "22": 6251,
+        "16": 6246,
+        "14": 6241,
+        "04": 8040,
+        "08": 8054,
+        "15": 8329,
+        "23": 8233,
+        "12": 8210,
+        "17": 8330,
+        "26": 8241,
+        "09": 8331,
+        "20": 8332,
+        "06": 8070,
+        "25": 8240,
+        "02": 8333,
+        "24": 8103,
+        "03": 8334,
+        "18": 8335,
+        "27": 8391,
+        "21": 8392,
+        "07": 8393,
+        "13": 8394,
+        "05": 8395
+    };
+    FilAg = {
+        "00": 6827,
+        "01": 11025,
+        "02": 11026,
+        "03": 11027,
+        "04": 11028,
+        "05": 11029,
+        "06": 11030,
+        "07": 11031,
+        "08": 11032,
+        "09": 11033,
+        "10": 11034,
+        "11": 11035,
+        "12": 11036,
+        "13": 11037,
+        "14": 11038,
+        "15": 11039,
+        "16": 11040,
+        "17": 11041,
+        "18": 11042,
+        "19": 11043,
+        "20": 11044,
+        "21": 11045,
+        "22": 11046,
+        "23": 11533,
+        "24": 11532
+    };
+    if (FSpnfp === "00") {
+        SlicePnfp = NumPnfp.slice(-2);
+        IdPNFP = FilAg[SlicePnfp];
+        if (IdPNFP) {
+            adressHref = 'http://retail.uapay.ua/WebUI.Retail/Users.aspx?ID=1&pID=5555&ppID=5556&pppID=' + IdPNFP;
+            document.location.href = adressHref;
+        } else {
+            alert("ПНФП " + NumPnfp + " не существует!");
+        }
+    } else {
+        IdFilials = MooveAg[FSpnfp];
+        if (IdFilials) {
+            adress = 'http://retail.uapay.ua/WebUI.Retail/Agencies.aspx?ID=1&pID=5555&ppID=' + IdFilials;
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', adress, false);
+            xhr.send(null);
+            SearchFilials = xhr.responseText;
+            PnfpStr = "№" + NumPnfp;
+            if (SearchFilials.indexOf(PnfpStr) != -1) {
+                IdPNFP = SearchFilials.slice(SearchFilials.indexOf(PnfpStr) - 14, SearchFilials.indexOf(PnfpStr)).match(/\d+/);
+                adressHref = 'http://retail.uapay.ua/WebUI.Retail/Users.aspx?ID=1&pID=5555&ppID=5556&pppID=' + IdPNFP;
+                document.location.href = adressHref;
+            } else {
+                if (SearchFilials.indexOf("Server Error in '/WebUI.Retail' Application.") == -1 && SearchFilials.indexOf("Пожалуйста, подключитесь") == -1) {
+                    alert("ПНФП " + NumPnfp + " не существует!");
+                } else {
+                    alert("Нужно перелогинится!");
+                    lSignIn(NumPnfp);
+                }
+            }
+        } else {
+            alert("ПНФП " + NumPnfp + " не существует!");
+        }
+    }
+}
+//
+PNFP = prompt("Введите номер ПНФП", "10001");
+SearchPnfp(PNFP);
+
+function lSignIn(PnfpInf) {
+    xhr = new XMLHttpRequest();
+    xhr.open('GET', "http://retail.uapay.ua/WebUI.Retail/Default.aspx?Logout=true", false);
+    xhr.send(null);
+    var LogoutResponse = xhr.responseText;
+    //Открываем всех неактивных
+    var vieState = LogoutResponse.slice(LogoutResponse.indexOf('VIEWSTATE" value=') + 18, LogoutResponse.indexOf('"', LogoutResponse.indexOf('VIEWSTATE" value=') + 18));
+    var vieStateGenerator = LogoutResponse.slice(LogoutResponse.indexOf('VIEWSTATEGENERATOR" value=') + 27, LogoutResponse.indexOf('"', LogoutResponse.indexOf('VIEWSTATEGENERATOR" value=') + 27));
+    var eventValidation = LogoutResponse.slice(LogoutResponse.indexOf('EVENTVALIDATION" value=') + 24, LogoutResponse.indexOf('"', LogoutResponse.indexOf('EVENTVALIDATION" value=') + 24));
+    //Заменить по элементам vieState и eventValidation все / на %2F,  + на %2B, = на %3D
+    var vieStateEnc = encodeURIComponent(vieState);
+    var vieStateGeneratorEnc = encodeURIComponent(vieStateGenerator);
+    var eventValidationEnc = encodeURIComponent(eventValidation);
+    //__EVENTTARGET=&__EVENTARGUMENT=&__LASTFOCUS=&__VIEWSTATE=%2FwEPDwUKMTkyOTk2MzIzOQ9kFgICAQ9kFgICBQ9kFhACAQ8PFgIeBFRleHQFFtCf0L7QtNC60LvRjtGH0LXQvdC40LVkZAIDDw8WAh8AZWRkAgUPDxYCHwAFLtCf0L7QttCw0LvRg9C50YHRgtCwLCDQv9C%2B0LTQutC70Y7Rh9C40YLQtdGB0YxkZAIHDw8WAh8ABQvQm9C%2B0LPQuNC9OmRkAg0PDxYCHwAFDdCf0LDRgNC%2B0LvRjDpkZAITDw8WAh8ABQnQr9C30YvQujpkZAIVDw8WCB4ISW1hZ2VVcmwFGC4vaW1hZ2VzL2ZsYWdzL3J1LXJ1LmpwZx4FV2lkdGgbAAAAAAAAMEABAAAAHgZIZWlnaHQbAAAAAAAAKEABAAAAHgRfIVNCAoADZGQCGQ8PFgIfAAUI0JLRhdC%2B0LRkZGQqj5VJzCSkuzP8lBnr54H7D00IsQ%3D%3D&__VIEWSTATEGENERATOR=B6573F5C&__EVENTVALIDATION=%2FwEWCAKy3OTUBgKtov%2FYDwLC866HDQLY4IebBQKllYjyBALIm%2BiYCQKumsDiDgKKza3uCY1j0XDybD1Wr1gyasAxMtZ2tzI1&LoginControl1%3ALoginEdit=igama&LoginControl1%3APasswordEdit=igama&LoginControl1%3ALanguagesCombo=ru-ru&LoginControl1%3ALoginButton=%D0%92%D1%85%D0%BE%D0%B4
+    params = "__EVENTTARGET=&__EVENTARGUMENT=&__LASTFOCUS=&__VIEWSTATE=" + vieStateEnc + "&__VIEWSTATEGENERATOR=" + vieStateGeneratorEnc + "&__EVENTVALIDATION=" + eventValidationEnc + "&LoginControl1%3ALoginEdit=igama&LoginControl1%3APasswordEdit=igama&LoginControl1%3ALanguagesCombo=ru-ru&LoginControl1%3ALoginButton=%D0%92%D1%85%D0%BE%D0%B4";
+    xhr = new XMLHttpRequest();
+    xhr.open('POST', "http://retail.uapay.ua/WebUI.Retail/Login.aspx", false);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhr.send(params);
+    SearchPnfp(PnfpInf);
+}
+
+function testserver(){
+    goop = document.location.href;
+var xhr = new XMLHttpRequest();
+            xhr.open('GET', goop, false);
+            xhr.send(null);
+var ffoop = xhr.responseText;
+//проверка
+ffoop.indexOf("Server Error in '/WebUI.Retail' Application.") == -1 && ffoop.indexOf("Пожалуйста, подключитесь") == -1
+
+}

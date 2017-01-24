@@ -82,23 +82,18 @@ function SearchPnfp(PnfpInf) {
                 adressHref = 'http://retail.uapay.ua/WebUI.Retail/Users.aspx?ID=1&pID=5555&ppID=5556&pppID=' + IdPNFP;
                 document.location.href = adressHref;
             } else {
-                if (SearchFilials.indexOf("Server Error in '/WebUI.Retail' Application.") == -1 && SearchFilials.indexOf("Пожалуйста, подключитесь") == -1) {
+                
                     alert("ПНФП " + NumPnfp + " не существует!");
-                } else {
-                    alert("Нужно перелогинится!");
-                    lSignIn(NumPnfp);
-                }
+                
             }
         } else {
             alert("ПНФП " + NumPnfp + " не существует!");
         }
     }
 }
-//
-PNFP = prompt("Введите номер ПНФП", "10001");
-SearchPnfp(PNFP);
 
-function lSignIn(PnfpInf) {
+
+function lSignIn() {
     xhr = new XMLHttpRequest();
     xhr.open('GET', "http://retail.uapay.ua/WebUI.Retail/Default.aspx?Logout=true", false);
     xhr.send(null);
@@ -117,7 +112,6 @@ function lSignIn(PnfpInf) {
     xhr.open('POST', "http://retail.uapay.ua/WebUI.Retail/Login.aspx", false);
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
     xhr.send(params);
-    SearchPnfp(PnfpInf);
 }
 
 function testserver(){
@@ -127,6 +121,16 @@ var xhr = new XMLHttpRequest();
             xhr.send(null);
 var ffoop = xhr.responseText;
 //проверка
-ffoop.indexOf("Server Error in '/WebUI.Retail' Application.") == -1 && ffoop.indexOf("Пожалуйста, подключитесь") == -1
+if(ffoop.indexOf("Server Error in '/WebUI.Retail' Application.") == -1 && ffoop.indexOf("Пожалуйста, подключитесь") == -1){
+ //
+PNFP = prompt("Введите номер ПНФП", "10001");
+SearchPnfp(PNFP);   
+}else{
+ //
+lSignIn(); 
+PNFP = prompt("Введите номер ПНФП", "10001");
+SearchPnfp(PNFP);
+}
 
 }
+testserver();

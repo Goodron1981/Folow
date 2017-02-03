@@ -169,14 +169,183 @@ function trySerchIdCas(numpnfp, logincassier) {
         var xhr = new XMLHttpRequest();
         xhr.open('GET', adressHref, false);
         xhr.send(null);
+//Добавление окна для вставки 
+if (!document.getElementsByName("Simbian")[0]) document.getElementById("Table2").outerHTML = "<textarea onmouseover=\"if(this.value=='ВСТАВЬТЕ СЮДА ДАННЫЕ УЧЕТНЫХ ЗАПИСЕЙ КОТОРЫХ НЕОБХОДИМО ПЕРЕВЕСТИ!') this.value = ''\" onmouseout=\"if(this.value=='') this.value='ВСТАВЬТЕ СЮДА ДАННЫЕ УЧЕТНЫХ ЗАПИСЕЙ КОТОРЫХ НЕОБХОДИМО ПЕРЕВЕСТИ!'\"style=\"outline: 1px solid blue; font-size:15px; font-family: cursive\" cols=\"70\" name=\"Simbian\" rows=\"40\"></textarea>";
+document.getElementsByName("Simbian")[0].value = "ВСТАВЬТЕ СЮДА ДАННЫЕ УЧЕТНЫХ ЗАПИСЕЙ КОТОРЫХ НЕОБХОДИМО ПЕРЕВЕСТИ!";
+document.getElementById("Table1").children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].outerHTML = " <button style=\"font-size:35px\" onclick=\"addCassiers()\" type=\"button\">Перевести кассиров</button><button style=\"font-size:35px\" onclick=\"clearText()\" type=\"button\">Очистить поле</button>";
+
+function addCassiers() {
+   // alert("Собираем данные");
+    ErrorRemoving = ""; // Ошибка на последнем этапе
+    UndefinedPNFP = ""; //Пустой массив для учетных записей с ненайдеными ПНФП
+    DontFind = ""; //пустой массив для записей которых не нашли на обоих ПНФП
+    IsTrue = "";
+    //Host = location.host;
+    //ID_SEARCH = {};
+    Cassiers = document.getElementsByName("Simbian")[0].value;
+    testCount(Cassiers);
+}
+
+function clearText() {
+    document.getElementsByName("Simbian")[0].value = "";
+}
+
+function SearchIdPnfp(PnfpInf) {
+   // alert("SearchIdPnfp");
+    FSpnfp = PnfpInf.slice(0, 2);
+    MooveAg = {
+        "10": 5556,
+        "11": 5556,
+        "22": 6251,
+        "16": 6246,
+        "14": 6241,
+        "04": 8040,
+        "08": 8054,
+        "15": 8329,
+        "23": 8233,
+        "12": 8210,
+        "17": 8330,
+        "26": 8241,
+        "09": 8331,
+        "20": 8332,
+        "06": 8070,
+        "25": 8240,
+        "02": 8333,
+        "24": 8103,
+        "03": 8334,
+        "18": 8335,
+        "27": 8391,
+        "21": 8392,
+        "07": 8393,
+        "13": 8394,
+        "05": 8395
+    };
+    FilAg = {
+        "00": 6827,
+        "01": 11025,
+        "02": 11026,
+        "03": 11027,
+        "04": 11028,
+        "05": 11029,
+        "06": 11030,
+        "07": 11031,
+        "08": 11032,
+        "09": 11033,
+        "10": 11034,
+        "11": 11035,
+        "12": 11036,
+        "13": 11037,
+        "14": 11038,
+        "15": 11039,
+        "16": 11040,
+        "17": 11041,
+        "18": 11042,
+        "19": 11043,
+        "20": 11044,
+        "21": 11045,
+        "22": 11046,
+        "23": 11533,
+        "24": 11532
+    };
+    if (FSpnfp === "00") {
+        FSpnfp = PnfpInf.slice(-2);
+        IdPNFP = FilAg[FSpnfp];
+        if (IdPNFP) {
+            return IdPNFP;
+        } else {
+            return undefined;
+        }
+    } else {
+        IdFilials = MooveAg[FSpnfp];
+        if (IdFilials) {
+            adress = 'http://retail.uapay.ua/WebUI.Retail/Agencies.aspx?ID=1&pID=5555&ppID=' + IdFilials;
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', adress, false);
+            xhr.send(null);
+            SearchFilials = xhr.responseText;
+            PnfpStr = "№" + PnfpInf;
+            if (SearchFilials.indexOf(PnfpStr) != -1) {
+                IdPNFP = SearchFilials.slice(SearchFilials.indexOf(PnfpStr) - 14, SearchFilials.indexOf(PnfpStr)).match(/\d+/);
+                return IdPNFP;
+            } else {
+                if (SearchFilials.indexOf("Server Error in '/WebUI.Retail' Application.") == -1 && SearchFilials.indexOf("Пожалуйста, подключитесь") == -1) {
+                    //alert("Указанный ПНФП не существует!");
+                    return undefined;
+                } else {
+                    alert("Нужно перелогинится!");
+                    //document.location.href = "http://"+ Host +"/WebUI.Retail/Login.aspx";
+                    alert(Stop); //для остановки всего скрипта
+                }
+            }
+        }
+    }
+}
+
+//***
+
+function testCount(ListCassiers) {
+   // alert("testCount");
+    ListPnfpforMoving = ListCassiers.match(/\b\d{5}\b/g); //выборка из текста номеров ПНФП;
+    ListLoginsForMoving = ListCassiers.match(/[a-z]+\.\w*\.?\w*\b/g); //выборка логинов начинающихся с латиници 
+    CountCassiers = ListLoginsForMoving.length; // количество кассиров
+    CountPNFPS = ListPnfpforMoving.length; // количество кассиров
+    if (CountCassiers == CountPNFPS / 2) {
+        ("Ok");
+        removeCassiers(ListLoginsForMoving, ListPnfpforMoving, CountCassiers);
+        if (DontFind !== "" || UndefinedPNFP !== "" || ErrorRemoving !== "" || IsTrue !== "") {
+            document.getElementsByName("Simbian")[0].value = "Логины не найдены на обоих ПНФП!" + "\n" + DontFind + "\n" + "Учетки с ошибкой при поиске ПНФП!" + "\n" + UndefinedPNFP + "\n" + "Ошибка при переводе!" + "\n" + ErrorRemoving + "\n" + "Ранее были переведены!" + "\n" + IsTrue;
+
+        } else {
+            ("Все кассиры переведены");
+        }
+    } else {
+        ("Неполные данные");
+    }
+}
+
+function removeCassiers(listlogins, listpnfp, CountCassiers) {
+    //alert('removeCassiers');
+    for (count = 0; count < CountCassiers; count++) {
+        //alert("count " + count);
+        numOldPnfp = listpnfp[count * 2];
+        // alert(numOldPnfp);
+        numNewPnfp = listpnfp[count * 2 + 1];
+        loginCassier = listlogins[count];
+        trying1 = trySerchIdCas(numNewPnfp, loginCassier);
+        if (Object.keys(trying1).length == 2) {
+            alert(loginCassier + " уже есть на новом ПНФП " + numNewPnfp);
+            IsTrue = IsTrue + loginCassier + "\t" + numOldPnfp + "\t" + numNewPnfp + "\n";
+        } else if (trying1.ID_PNFP) {
+            trying2 = trySerchIdCas(numOldPnfp, loginCassier);
+            if (Object.keys(trying2).length == 1) {
+                DontFind = DontFind + loginCassier + "\t" + numOldPnfp + "\t" + numNewPnfp + "\n";
+            } else if (Object.keys(trying2).length !== 0) {
+                deremovinf(trying1.ID_PNFP, trying2.ID_USER);
+            }
+        }
+    }
+}
+
+function trySerchIdCas(numpnfp, logincassier) {
+    //alert('trySerchIdCas');
+    ID_SEARCH = {};
+    ID_SEARCH.ID_PNFP = SearchIdPnfp(numpnfp);
+    if (ID_SEARCH.ID_PNFP) {
+        //alert("Найден ПНФП " + numpnfp);
+        //alert("Ищем в активных " + logincassier);
+        adressHref = 'http://retail.uapay.ua/WebUI.Retail/Users.aspx?ID=1&pID=5555&ppID=5556&pppID=' + ID_SEARCH.ID_PNFP;
+        //1. Отправляем GET запрос для получения HTML старници отделения
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', adressHref, false);
+        xhr.send(null);
         var FirstResponse = xhr.responseText;
-        if (FirstResponse.indexOf(logincassier) !== -1) {
+        if (FirstResponse.indexOf(">"+logincassier+"<") !== -1) {
             nomer = FirstResponse.slice(FirstResponse.lastIndexOf('title="ID:', FirstResponse.indexOf(logincassier)), FirstResponse.lastIndexOf('title="ID:', FirstResponse.indexOf(logincassier)) + 20);
             ID_SEARCH.ID_USER = nomer.match(/\d+/);
-            alert("Найден кассир " + logincassier + " на ПНФП " + numpnfp + " в активных");
+            //("Найден кассир " + logincassier + " на ПНФП " + numpnfp + " в активных");
             return ID_SEARCH;
         } else {
-           // alert("Ищем в неактивных " + logincassier);
+            //alert("Ищем в неактивных " + logincassier);
             //Открываем всех неактивных
             var vieState = FirstResponse.slice(FirstResponse.indexOf('VIEWSTATE" value=') + 18, FirstResponse.indexOf('"', FirstResponse.indexOf('VIEWSTATE" value=') + 18));
             var vieStateGenerator = FirstResponse.slice(FirstResponse.indexOf('VIEWSTATEGENERATOR" value=') + 27, FirstResponse.indexOf('"', FirstResponse.indexOf('VIEWSTATEGENERATOR" value=') + 27));
@@ -192,13 +361,13 @@ function trySerchIdCas(numpnfp, logincassier) {
             xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
             xhr.send(params);
             SecondResponse = xhr.responseText;
-            if (SecondResponse.indexOf(logincassier) !== -1) {
-                alert("Найден " + logincassier + "в неактивных");
+            if (SecondResponse.indexOf(">"+logincassier+"<") !== -1) {
+                //alert("Найден " + logincassier + " в неактивных по ПНФП "+ numpnfp);
                 nomer = SecondResponse.slice(SecondResponse.lastIndexOf('title="ID:', SecondResponse.indexOf(logincassier)), SecondResponse.lastIndexOf('title="ID:', SecondResponse.indexOf(logincassier)) + 20);
                 ID_SEARCH.ID_USER = nomer.match(/\d+/);
                 return ID_SEARCH;
             } else {
-                alert("Ненайден " + logincassier + " в неактивных");
+                //alert("Ненайден " + logincassier + " в неактивных по ПНФП " + numpnfp);
                 return ID_SEARCH;
             }
         }
@@ -228,7 +397,7 @@ function deremovinf(idpnfp, idcassier) {
         hoom = xhr.responseXML;
         otvet = hoom.children[0].children[0].children[0].children[0].textContent; //параметр ответа
         //alert(otvet+1);
-        alert("otvet1 " + otvet);
+        //alert("otvet1 " + otvet);
     } else if (otvet === 'false') { //Если документы есть
         params = '<?xml version="1.0"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><SOAP-ENV:Body><MoveUser xmlns="http://UAPay.com.ua/admin//"><ticket>' + ticketNum + '</ticket><userID>' + idcassier + '</userID><agencyID>' + idpnfp + '</agencyID><userMovingType>UserHasDocumentTheyDontNeedMove</userMovingType></MoveUser></SOAP-ENV:Body></SOAP-ENV:Envelope>';
         xhr = new XMLHttpRequest();

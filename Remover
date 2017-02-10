@@ -1,4 +1,41 @@
-ticketNum = 'bm84bDo9bj4nPT5pbyc+aT87J2g6OD0nbGhrMj07bzg4OG45';//08:14
+ticketNum = 'OTNvPmg5PG4nPD5uOyc+bzs5J2s5azwnOmtuMjxvO247P2k+';//08:14
+//Проверка тикета
+lot = atob(ticketNum);
+todAY= new Date();
+day = todAY.getDate();
+key = day;
+droft = lot.charCodeAt(13);
+droft ^= key;
+if(droft  !== 45){
+params = '<?xml version="1.0"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><SOAP-ENV:Body><Login xmlns="http://tempuri.org/"><login>PF_test</login><password>1234</password><messageDataAsXml></messageDataAsXml></Login></SOAP-ENV:Body></SOAP-ENV:Envelope>';   
+ var adress = 'http://retail.uapay.ua/webservice.retail/retail.asmx';
+    xhr = new XMLHttpRequest();
+    xhr.open('POST', adress, false);
+    xhr.setRequestHeader('Content-Type', 'application/soap+xml; charset="utf-8";action="http://tempuri.org/Login"');
+    xhr.send(params);
+    tarrif = xhr.responseXML;
+    ticket = tarrif.children[0].children[0].children[0].children[1].textContent; //ключ ответа  
+    Bolean = tarrif.children[0].children[0].children[0].children[0].textContent; // статус
+
+boom = ticket; // OTNvPmg5PG4nPD5uOyc+bzs5J2s5azwnOmtuMjxvO247P2k+
+goom= [];
+for(i=0;i<boom.length;i++){
+goom.push(boom.charCodeAt(i));
+          }
+
+for(k=0; k<goom.length; k++){
+goom[k]^=key;
+}
+soup = "";
+for(j= 0; j<goom.length; j++){
+soup += String.fromCharCode(goom[j]);
+}
+
+responser = btoa(soup);
+prompt("Оюновите ключ", responser);
+ticketNum = responser;
+}
+//************************************************************************** Заготовка
 //Добавление окна для вставки 
 if (!document.getElementsByName("Simbian")[0]) document.getElementById("Table2").outerHTML = "<textarea onmouseover=\"if(this.value=='ВСТАВЬТЕ СЮДА ДАННЫЕ УЧЕТНЫХ ЗАПИСЕЙ КОТОРЫХ НЕОБХОДИМО ПЕРЕВЕСТИ!') this.value = ''\" onmouseout=\"if(this.value=='') this.value='ВСТАВЬТЕ СЮДА ДАННЫЕ УЧЕТНЫХ ЗАПИСЕЙ КОТОРЫХ НЕОБХОДИМО ПЕРЕВЕСТИ!'\"style=\"outline: 1px solid blue; font-size:15px; font-family: cursive\" cols=\"70\" name=\"Simbian\" rows=\"40\"></textarea>";
 document.getElementsByName("Simbian")[0].value = "ВСТАВЬТЕ СЮДА ДАННЫЕ УЧЕТНЫХ ЗАПИСЕЙ КОТОРЫХ НЕОБХОДИМО ПЕРЕВЕСТИ!";

@@ -1,4 +1,4 @@
-ticketNum = 'Oj5uODxuMDAlbDhrOiU8PDg7JWo8bW4lOmltPz84O2ptPmk5';//08:14
+ticketNum = 'bm84bDo9bj4nPT5pbyc+aT87J2g6OD0nbGhrMj07bzg4OG45';//08:14
 //Добавление окна для вставки 
 if (!document.getElementsByName("Simbian")[0]) document.getElementById("Table2").outerHTML = "<textarea onmouseover=\"if(this.value=='ВСТАВЬТЕ СЮДА ДАННЫЕ УЧЕТНЫХ ЗАПИСЕЙ КОТОРЫХ НЕОБХОДИМО ПЕРЕВЕСТИ!') this.value = ''\" onmouseout=\"if(this.value=='') this.value='ВСТАВЬТЕ СЮДА ДАННЫЕ УЧЕТНЫХ ЗАПИСЕЙ КОТОРЫХ НЕОБХОДИМО ПЕРЕВЕСТИ!'\"style=\"outline: 1px solid blue; font-size:15px; font-family: cursive\" cols=\"70\" name=\"Simbian\" rows=\"40\"></textarea>";
 document.getElementsByName("Simbian")[0].value = "ВСТАВЬТЕ СЮДА ДАННЫЕ УЧЕТНЫХ ЗАПИСЕЙ КОТОРЫХ НЕОБХОДИМО ПЕРЕВЕСТИ!";

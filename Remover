@@ -1,4 +1,4 @@
-ticketNum = 'OTNvPmg5PG4nPD5uOyc+bzs5J2s5azwnOmtuMjxvO247P2k+';//08:14
+ticketNum = 'ODtuaDhpO2gmOTk9OCY/Pjo7JjJvPGkmMm1vbW86bm4yPGlp';//08:14
 //Проверка тикета
 lot = atob(ticketNum);
 todAY= new Date();
